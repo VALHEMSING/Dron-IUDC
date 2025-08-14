@@ -107,8 +107,7 @@ def prueba_cuatro():
 
     # Aterrizar
     tello.land()
-    
-    
+        
 """
         PRUEBA 5 -> Primer recorrido... 
 """          
