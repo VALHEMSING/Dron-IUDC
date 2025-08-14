@@ -109,7 +109,28 @@ def prueba_cuatro():
     tello.land()
     
     
-    
+def prueba_seis():
+       # Conexión al DRON
+    tello.connect()
+    # Visualización en consola de la batería
+    print(f"Batería: {tello.get_battery()}%")
+
+    # Despegar
+    tello.takeoff()
+    time.sleep(1)  # Esperar a que se estabilice
+
+    # Se mueve hacia arriba  y abajo
+    print(" adelante y atras ")
+    # Se mueve hacia arriba
+    tello.move_up(40)
+    # Se mueve hacia abajo
+    tello.move_down(40)
+   
+    # Pausa para estabilizar
+    time.sleep(1)
+
+    # Aterrizar
+    tello.land()
          
         
         
