@@ -28,7 +28,9 @@ def prueba_uno():
     tello.land()
     
     
-    
+"""
+        PRUEBA 2 -> Giro a la derecha de 360°...
+"""   
 def prueba_dos():
     # Conexión al DRON
     tello.connect()
@@ -50,6 +52,9 @@ def prueba_dos():
     # Aterrizar
     tello.land()
 
+"""
+        PRUEBA 3 -> Movimiento derecha e izquierda...
+"""  
 def prueba_tres():
     # Conexión al DRON
     tello.connect()
@@ -74,7 +79,10 @@ def prueba_tres():
 
     # Aterrizar
     tello.land()
-        
+    
+"""
+        PRUEBA 4 -> Movimiento adelante y atras... 
+"""     
 def prueba_cuatro():
    # Conexión al DRON
     tello.connect()
