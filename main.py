@@ -63,7 +63,7 @@ def prueba_tres():
 
     # Despegar
     tello.takeoff()
-    time.sleep(1)  # Esperar a que se estabilice
+    time.sleep(3)  # Esperar a que se estabilice
 
     # Giro a la derecha 180°
     print(" derecha e izquierda")
