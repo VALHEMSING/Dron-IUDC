@@ -39,8 +39,9 @@ def prueba_dos():
     tello.takeoff()
     time.sleep(3)  # Esperar a que se estabilice
 
-    # Giro a la derecha 180°
-    print("Girando 180° a la derecha...")
+    # Giro a la derecha 360°
+    print("Girando 360° a la derecha...")
+    #gira 360° a la derecha 
     tello.rotate_clockwise(360)
 
     # Pausa para estabilizar
@@ -65,7 +66,7 @@ def prueba_tres():
     tello.move_right(20)
     # Se mueve a la izquierda
     tello.move_left(40)
-    #se mueve a la derecha 
+    # Se mueve a la derecha 
     tello.move_right(20)
 
     # Pausa para estabilizar
