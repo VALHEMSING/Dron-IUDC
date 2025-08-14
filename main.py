@@ -49,10 +49,34 @@ def prueba_dos():
     # Aterrizar
     tello.land()
 
+def prueba_tres():
+    # Conexión al DRON
+    tello.connect()
+    # Visualización en consola de la batería
+    print(f"Batería: {tello.get_battery()}%")
+
+    # Despegar
+    tello.takeoff()
+    time.sleep(1)  # Esperar a que se estabilice
+
+    # Giro a la derecha 180°
+    print(" derecha e izquierda")
+    # Se mueve a la derecha
+    tello.move_right(20)
+    # Se mueve a la izquierda
+    tello.move_left(40)
+    # Semueve a la derecha 
+    tello.move_right(20)
+
+    # Pausa para estabilizar
+    time.sleep(1)
+
+    # Aterrizar
+    tello.land()
         
         
         
 if __name__ == "__main__":
-    prueba_dos()
+    prueba_tres()
    
     
