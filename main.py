@@ -82,12 +82,29 @@ def prueba_cuatro():
 
     # Despegar
     tello.takeoff()
-    time.sleep(3)  # Esperar a que se estabilice
+    time.sleep(1)  # Esperar a que se estabilice
+
+    # Se mueve hacia adelante y atras
+    print(" adelante y atras ")
+    # Se mueve hacia adelante
+    tello.move_forward(40)
+    # Se mueve hacia atras
+    tello.move_back(40)
+    # Se mueve hacia adelante
+    tello.move_forward(20)
+
+    # Pausa para estabilizar
+    time.sleep(1)
+
+    # Aterrizar
+    tello.land()
+    
+    
     
          
         
         
 if __name__ == "__main__":
-    prueba_tres()
+    prueba_cuatro()
    
     
