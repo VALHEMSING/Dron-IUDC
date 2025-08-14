@@ -65,7 +65,7 @@ def prueba_tres():
     tello.move_right(20)
     # Se mueve a la izquierda
     tello.move_left(40)
-    # Semueve a la derecha 
+    #se mueve a la derecha 
     tello.move_right(20)
 
     # Pausa para estabilizar
