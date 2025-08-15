@@ -1,5 +1,6 @@
 from djitellopy import Tello
 import time
+import cv2
 tello = Tello()
 
 """
@@ -148,8 +149,39 @@ def prueba_cinco():
     tello.land()
    # Visualización en consola de la batería
     print(f"Batería: {tello.get_battery()}%")   
+
+def prueba_siete():
+    tello.connect()
+    # Ahora obtener la batería
+    try:
+        print(f"Batería: {tello.get_battery()}%")
+    except Exception as e:
+        print("No se pudo obtener la batería:", e)
+
+    # Iniciar transmisión de video
+    tello.streamon()
+
+    # Obtener el lector de frames
+    frame_read = tello.get_frame_read()
+
+    # Mostrar el video durante 30 segundos o hasta que se presione 'q'
+    start_time = time.time()
+    while time.time() - start_time < 30:
+        frame = frame_read.frame
+
+        # Mostrar el video
+        cv2.imshow("Vista del Tello", frame)
+
+        # Salir si se presiona 'q'
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            break
+
+    # Detener transmisión
+    tello.streamoff()
+    cv2.destroyAllWindows()
+
         
 if __name__ == "__main__":
-    prueba_seis()
+    prueba_siete()
    
     
