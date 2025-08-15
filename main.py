@@ -168,6 +168,7 @@ def prueba_seis():
     tello.streamon()
 
     # Guardar referencia para leer imágenes de la cámara
+
     frame_read = tello.get_frame_read()
 
     # Mostrar video durante 30 segundos o hasta presionar 'q'
@@ -227,6 +228,71 @@ def prueba_siete():
         tello.streamoff()
         cv2.destroyAllWindows()
 
+"""
+        PRUEBA 8 -> seguir rostro...
+""" 
+
+def prueba_ocho():
+    # Conectar al dron y encender transmisión de video
+    tello = Tello()
+    tello.connect()
+    tello.streamon()
+
+    # Despegue y subir 70 cm
+    tello.takeoff()
+    tello.move_up(70)  # Subir 70 cm para un inicio seguro
+
+    # Comienza el proceso de búsqueda
+    searching_for_face = True
+    print("Iniciando escaneo para encontrar rostros...")
+
+    try:
+        while True:
+            # Capturar imagen desde la cámara del dron
+            frame = tello.get_frame_read().frame
+            frame = cv2.resize(frame, (640, 480))  # Redimensionar para mejorar el rendimiento
+            rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)  # Convertir a RGB para la librería
+
+            # Buscar rostros en la imagen y codificarlos
+            face_locations = face_recognition.face_locations(rgb_frame)
+            face_encodings = face_recognition.face_encodings(rgb_frame, face_locations)
+
+            # Variable para controlar si encontramos rostros
+            face_found = False
+
+            # Revisar cada rostro detectado
+            for (top, right, bottom, left), face_encoding in zip(face_locations, face_encodings):
+                # Dibujar un rectángulo en la cara detectada
+                cv2.rectangle(frame, (left, top), (right, bottom), (0, 255, 0), 2)
+
+                # Escribir el nombre debajo del rectángulo
+                cv2.putText(frame, "Rostro Detectado", (left, top - 10),
+                            cv2.FONT_HERSHEY_SIMPLEX, 0.9, (255, 255, 255), 2)
+
+                # Si se detectó al menos un rostro, marcar la variable face_found
+                face_found = True
+
+                # Llamar a la función para seguir el rostro
+                follow_face(tello, (top, right, bottom, left), frame)
+
+            if not face_found:
+                # Si no se encuentra el rostro, hacer que el dron gire lentamente
+                print("Buscando rostros... El dron girará.")
+                tello.rotate_clockwise(30)  # Girar 30 grados
+
+            # Mostrar el video en pantalla
+            cv2.imshow('Video', frame)
+
+            # Salir con la tecla 'q'
+            if cv2.waitKey(1) & 0xFF == ord('q'):
+                break
+
+    finally:
+        # Apagar transmisión y cerrar ventana
+        tello.streamoff()
+        cv2.destroyAllWindows()
+        print(f"Batería: {tello.get_battery()}% de batería")
+
 
 """
         PRUEBA 9 -> detectar rostro especifico...
@@ -237,6 +303,7 @@ def prueba_nueve():
     tello = Tello()
     tello.connect()
     tello.streamon()
+    print(f"Batería: {tello.get_battery()}% de batería")
 
     # Cargar foto de referencia y obtener su codificación facial
     imagen_andres = face_recognition.load_image_file("img/Andres.jpg")
@@ -284,11 +351,131 @@ def prueba_nueve():
         # Apagar transmisión y cerrar ventana
         tello.streamoff()
         cv2.destroyAllWindows()
+        print(f"Batería: {tello.get_battery()}% de batería")   
 
 
+
+"""
+        PRUEBA 10 -> seguir rostro especifico...
+""" 
+
+
+def follow_face(tello, face_location, frame):
+    """
+    Función para seguir el rostro una vez detectado.
+    El dron ajustará su posición en función de la ubicación del rostro en la imagen.
+    """
+    # Extraer la posición del rostro en el marco
+    top, right, bottom, left = face_location
+    face_center_x = (left + right) // 2
+    face_center_y = (top + bottom) // 2
+
+    frame_center_x = frame.shape[1] // 2
+    frame_center_y = frame.shape[0] // 2
+
+    # Calcular la diferencia entre el centro del rostro y el centro de la cámara
+    offset_x = face_center_x - frame_center_x
+    offset_y = face_center_y - frame_center_y
+
+    # Mover el dron hacia el rostro en función de la diferencia
+    if abs(offset_x) > 30:
+        if offset_x > 0:
+            tello.move_right(40)
+        else:
+            tello.move_left(40)
+
+    if abs(offset_y) > 50:
+        if offset_y > 0:
+            tello.move_down(20)
+        else:
+            tello.move_up(20)
+
+    # Si el rostro está centrado, avanzar
+    if abs(offset_x) < 50 and abs(offset_y) < 50:
+        print("Siguiendo al rostro...")
+        tello.move_forward(30)  # Avanzar hacia el rostro
+
+
+
+
+
+def prueba_diez():
+    # Conectar al dron y encender transmisión de video
+    tello = Tello()
+    tello.connect()
+    tello.streamon()
+
+    # Cargar foto de referencia y obtener su codificación facial
+    imagen_andres = face_recognition.load_image_file("img/Andres.jpg")
+    encoding_andres = face_recognition.face_encodings(imagen_andres)[0]
+
+    # Despegue y subir 100 cm
+    tello.takeoff()
+    tello.move_up(70)  # Subir 100 cm para un inicio seguro
+
+    # Guardar las caras conocidas y sus nombres
+    known_face_encodings = [encoding_andres]
+    known_face_names = ["Andres"]
+
+    # Comienza el proceso de búsqueda
+    searching_for_face = True
+    print("Iniciando escaneo para encontrar el rostro...")
+
+    try:
+        while True:
+            # Capturar imagen desde la cámara del dron
+            frame = tello.get_frame_read().frame
+            frame = cv2.resize(frame, (640, 480))  # Redimensionar para mejorar el rendimiento
+            rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)  # Convertir a RGB para la librería
+
+            # Buscar rostros en la imagen y codificarlos
+            face_locations = face_recognition.face_locations(rgb_frame)
+            face_encodings = face_recognition.face_encodings(rgb_frame, face_locations)
+
+            # Variable para controlar si encontramos el rostro
+            face_found = False
+
+            # Revisar cada rostro detectado
+            for (top, right, bottom, left), face_encoding in zip(face_locations, face_encodings):
+                matches = face_recognition.compare_faces(known_face_encodings, face_encoding)
+
+                # Nombre por defecto si no hay coincidencia
+                name = "Desconocido"
+                if True in matches:
+                    first_match_index = matches.index(True)
+                    name = known_face_names[first_match_index]
+                    face_found = True  # Rostro encontrado
+
+                # Dibujar un rectángulo en la cara detectada
+                cv2.rectangle(frame, (left, top), (right, bottom), (0, 255, 0), 2)
+                # Escribir el nombre debajo del rectángulo
+                cv2.putText(frame, name, (left, top - 10),
+                            cv2.FONT_HERSHEY_SIMPLEX, 0.9, (255, 255, 255), 2)
+
+            if face_found:
+                # Si el rostro es encontrado, comenzar a seguirlo
+                print("Rostro encontrado. Iniciando seguimiento...")
+                follow_face(tello, face_locations[0], frame)  # Llamar a la función para seguir el rostro
+            else:
+                # Si no se encuentra el rostro, hacer que el dron gire lentamente
+                print("Buscando rostro... El dron girará.")
+                tello.rotate_clockwise(30)  # Girar 30 grados
+
+            # Mostrar el video en pantalla
+            cv2.imshow('Video', frame)
+
+            # Salir con la tecla 'q'
+            if cv2.waitKey(1) & 0xFF == ord('q'):
+                break
+
+    finally:
+        # Apagar transmisión y cerrar ventana
+        tello.streamoff()
+        cv2.destroyAllWindows()
+        print(f"Batería: {tello.get_battery()}% de batería")
 
         
 if __name__ == "__main__":
-    prueba_nueve()
+    prueba_diez()
    
     
