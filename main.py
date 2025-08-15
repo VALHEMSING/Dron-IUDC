@@ -1,6 +1,7 @@
 from djitellopy import Tello
 import time
 import cv2
+import face_recognition
 tello = Tello()
 
 """
@@ -185,10 +186,10 @@ def prueba_seis():
     cv2.destroyAllWindows()
 
 """
-        PRUEBA 7 -> Activar camara... 
+        PRUEBA 7 -> detectar rostro... 
 """ 
 def prueba_siete():
-     # Inicializar dron
+    # Inicializar dron
     tello = Tello()
     tello.connect()
     tello.streamon()
@@ -198,14 +199,9 @@ def prueba_siete():
         cv2.data.haarcascades + 'haarcascade_frontalface_default.xml'
     )
 
-    # Despegar
-    tello.takeoff()
-    time.sleep(1)
-    tello.send_rc_control(0, 0, 0, 0)
-
     try:
         while True:
-            # Obtener frame
+            # Obtener frame de la cámara
             frame = tello.get_frame_read().frame
             frame = cv2.resize(frame, (640, 480))
             gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
@@ -213,41 +209,79 @@ def prueba_siete():
             # Detectar rostros
             faces = face_cascade.detectMultiScale(gray, 1.3, 5)
 
-            if len(faces) > 0:
-                (x, y, w, h) = faces[0]
+            # Dibujar cada rostro detectado
+            for (x, y, w, h) in faces:
                 cv2.rectangle(frame, (x, y), (x+w, y+h), (0, 255, 0), 2)
 
-                # Centro del rostro
-                face_center_x = x + w // 2
-                face_center_y = y + h // 2
-
-                # Errores
-                error_x = face_center_x - 320
-                error_y = face_center_y - 240
-
-                # Velocidades
-                yaw_speed = int(error_x / 20)       # giro izquierda/derecha
-                up_down_speed = int(-error_y / 20)  # subir/bajar
-
-                # Mover dron
-                tello.send_rc_control(0, 0, up_down_speed, yaw_speed)
-            else:
-                # Si no ve rostro, se queda quieto
-                tello.send_rc_control(0, 0, 0, 0)
+            # Mostrar cantidad de rostros
+            cv2.putText(frame, f"Rostros detectados: {len(faces)}", 
+                        (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 
+                        1, (0, 255, 255), 2)
 
             # Mostrar video
-            cv2.imshow("Face Tracking", frame)
+            cv2.imshow("Face Detection", frame)
 
             # Salir con 'q'
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 break
 
     finally:
-        tello.send_rc_control(0, 0, 0, 0)
-        tello.land()
         tello.streamoff()
         cv2.destroyAllWindows()
+
+def prueba_nueve():
+    # Inicializar dron
+    tello = Tello()
+    tello.connect()
+    tello.streamon()
+
+    # Cargar la imagen de referencia
+    imagen_andres = face_recognition.load_image_file("img/Andres.jpg")
+    encoding_andres = face_recognition.face_encodings(imagen_andres)[0]
+
+    # Lista de codificaciones y nombres
+    known_face_encodings = [encoding_andres]
+    known_face_names = ["Andres"]
+
+    try:
+        while True:
+            # Obtener frame desde el Tello
+            frame = tello.get_frame_read().frame
+            frame = cv2.resize(frame, (640, 480))
+            rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+
+            # Localizar y codificar caras en la imagen actual
+            face_locations = face_recognition.face_locations(rgb_frame)
+            face_encodings = face_recognition.face_encodings(rgb_frame, face_locations)
+
+            # Recorremos las caras detectadas
+            for (top, right, bottom, left), face_encoding in zip(face_locations, face_encodings):
+                matches = face_recognition.compare_faces(known_face_encodings, face_encoding)
+
+                name = "Desconocido"
+                if True in matches:
+                    first_match_index = matches.index(True)
+                    name = known_face_names[first_match_index]
+
+                # Dibujar rectángulo
+                cv2.rectangle(frame, (left, top), (right, bottom), (0, 255, 0), 2)
+                # Poner nombre
+                cv2.putText(frame, name, (left, top - 10),
+                            cv2.FONT_HERSHEY_SIMPLEX, 0.9, (255, 255, 255), 2)
+
+            cv2.imshow('Video', frame)
+
+            # Salir con 'q'
+            if cv2.waitKey(1) & 0xFF == ord('q'):
+                break
+
+    finally:
+        tello.streamoff()
+        cv2.destroyAllWindows()
+
+
+        
 if __name__ == "__main__":
-    prueba_siete()
+    prueba_nueve()
    
     
