@@ -150,7 +150,11 @@ def prueba_cinco():
    # Visualización en consola de la batería
     print(f"Batería: {tello.get_battery()}%")   
 
-def prueba_siete():
+"""
+        PRUEBA 6 -> Activar camara... 
+""" 
+
+def prueba_seis():
     tello.connect()
     # Ahora obtener la batería
     try:
@@ -180,7 +184,69 @@ def prueba_siete():
     tello.streamoff()
     cv2.destroyAllWindows()
 
-        
+"""
+        PRUEBA 7 -> Activar camara... 
+""" 
+def prueba_siete():
+     # Inicializar dron
+    tello = Tello()
+    tello.connect()
+    tello.streamon()
+
+    # Cargar clasificador de rostro
+    face_cascade = cv2.CascadeClassifier(
+        cv2.data.haarcascades + 'haarcascade_frontalface_default.xml'
+    )
+
+    # Despegar
+    tello.takeoff()
+    time.sleep(1)
+    tello.send_rc_control(0, 0, 0, 0)
+
+    try:
+        while True:
+            # Obtener frame
+            frame = tello.get_frame_read().frame
+            frame = cv2.resize(frame, (640, 480))
+            gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+
+            # Detectar rostros
+            faces = face_cascade.detectMultiScale(gray, 1.3, 5)
+
+            if len(faces) > 0:
+                (x, y, w, h) = faces[0]
+                cv2.rectangle(frame, (x, y), (x+w, y+h), (0, 255, 0), 2)
+
+                # Centro del rostro
+                face_center_x = x + w // 2
+                face_center_y = y + h // 2
+
+                # Errores
+                error_x = face_center_x - 320
+                error_y = face_center_y - 240
+
+                # Velocidades
+                yaw_speed = int(error_x / 20)       # giro izquierda/derecha
+                up_down_speed = int(-error_y / 20)  # subir/bajar
+
+                # Mover dron
+                tello.send_rc_control(0, 0, up_down_speed, yaw_speed)
+            else:
+                # Si no ve rostro, se queda quieto
+                tello.send_rc_control(0, 0, 0, 0)
+
+            # Mostrar video
+            cv2.imshow("Face Tracking", frame)
+
+            # Salir con 'q'
+            if cv2.waitKey(1) & 0xFF == ord('q'):
+                break
+
+    finally:
+        tello.send_rc_control(0, 0, 0, 0)
+        tello.land()
+        tello.streamoff()
+        cv2.destroyAllWindows()
 if __name__ == "__main__":
     prueba_siete()
    
