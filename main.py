@@ -152,73 +152,70 @@ def prueba_cinco():
     print(f"Batería: {tello.get_battery()}%")   
 
 """
-        PRUEBA 6 -> Activar camara... 
+        PRUEBA 6 -> Activar cámara... 
 """ 
-
 def prueba_seis():
+    # Conectar con el dron
     tello.connect()
-    # Ahora obtener la batería
+
+    # Mostrar nivel de batería
     try:
         print(f"Batería: {tello.get_battery()}%")
-    except Exception as e:
-        print("No se pudo obtener la batería:", e)
+    except:
+        print("No se pudo obtener la batería")
 
-    # Iniciar transmisión de video
+    # Encender transmisión de video
     tello.streamon()
 
-    # Obtener el lector de frames
+    # Guardar referencia para leer imágenes de la cámara
     frame_read = tello.get_frame_read()
 
-    # Mostrar el video durante 30 segundos o hasta que se presione 'q'
+    # Mostrar video durante 30 segundos o hasta presionar 'q'
     start_time = time.time()
     while time.time() - start_time < 30:
         frame = frame_read.frame
-
-        # Mostrar el video
         cv2.imshow("Vista del Tello", frame)
 
-        # Salir si se presiona 'q'
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
 
-    # Detener transmisión
+    # Apagar transmisión y cerrar ventana
     tello.streamoff()
     cv2.destroyAllWindows()
 
 """
-        PRUEBA 7 -> detectar rostro... 
+        PRUEBA 7 -> detectar rostro...
 """ 
 def prueba_siete():
-    # Inicializar dron
-    tello = Tello()
+    # Conectar dron y encender cámara
     tello.connect()
     tello.streamon()
 
-    # Cargar clasificador de rostro
+    # Cargar detector de rostros
     face_cascade = cv2.CascadeClassifier(
         cv2.data.haarcascades + 'haarcascade_frontalface_default.xml'
     )
 
     try:
         while True:
-            # Obtener frame de la cámara
+            # Capturar imagen
             frame = tello.get_frame_read().frame
             frame = cv2.resize(frame, (640, 480))
             gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
-            # Detectar rostros
+            # Buscar rostros en la imagen
             faces = face_cascade.detectMultiScale(gray, 1.3, 5)
 
-            # Dibujar cada rostro detectado
+            # Dibujar rectángulos en cada rostro
             for (x, y, w, h) in faces:
                 cv2.rectangle(frame, (x, y), (x+w, y+h), (0, 255, 0), 2)
 
-            # Mostrar cantidad de rostros
-            cv2.putText(frame, f"Rostros detectados: {len(faces)}", 
-                        (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 
+            # Mostrar cantidad de rostros detectados
+            cv2.putText(frame, f"Rostros detectados: {len(faces)}",
+                        (10, 30), cv2.FONT_HERSHEY_SIMPLEX,
                         1, (0, 255, 255), 2)
 
-            # Mostrar video
+            # Mostrar imagen en ventana
             cv2.imshow("Face Detection", frame)
 
             # Salir con 'q'
@@ -226,58 +223,68 @@ def prueba_siete():
                 break
 
     finally:
+        # Apagar cámara y cerrar ventana
         tello.streamoff()
         cv2.destroyAllWindows()
 
+
+"""
+        PRUEBA 9 -> detectar rostro especifico...
+""" 
+
 def prueba_nueve():
-    # Inicializar dron
+    # Conectar dron y encender transmisión de video
     tello = Tello()
     tello.connect()
     tello.streamon()
 
-    # Cargar la imagen de referencia
+    # Cargar foto de referencia y obtener su codificación facial
     imagen_andres = face_recognition.load_image_file("img/Andres.jpg")
     encoding_andres = face_recognition.face_encodings(imagen_andres)[0]
 
-    # Lista de codificaciones y nombres
+    # Guardar las caras conocidas y sus nombres
     known_face_encodings = [encoding_andres]
     known_face_names = ["Andres"]
 
     try:
         while True:
-            # Obtener frame desde el Tello
+            # Capturar imagen desde la cámara del dron
             frame = tello.get_frame_read().frame
             frame = cv2.resize(frame, (640, 480))
-            rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+            rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)  # Convertir a RGB para la librería
 
-            # Localizar y codificar caras en la imagen actual
+            # Buscar rostros en la imagen y codificarlos
             face_locations = face_recognition.face_locations(rgb_frame)
             face_encodings = face_recognition.face_encodings(rgb_frame, face_locations)
 
-            # Recorremos las caras detectadas
+            # Revisar cada rostro detectado
             for (top, right, bottom, left), face_encoding in zip(face_locations, face_encodings):
                 matches = face_recognition.compare_faces(known_face_encodings, face_encoding)
 
+                # Nombre por defecto si no hay coincidencia
                 name = "Desconocido"
                 if True in matches:
                     first_match_index = matches.index(True)
                     name = known_face_names[first_match_index]
 
-                # Dibujar rectángulo
+                # Dibujar un rectángulo en la cara
                 cv2.rectangle(frame, (left, top), (right, bottom), (0, 255, 0), 2)
-                # Poner nombre
+                # Escribir el nombre debajo del rectángulo
                 cv2.putText(frame, name, (left, top - 10),
                             cv2.FONT_HERSHEY_SIMPLEX, 0.9, (255, 255, 255), 2)
 
+            # Mostrar el video en pantalla
             cv2.imshow('Video', frame)
 
-            # Salir con 'q'
+            # Salir con la tecla 'q'
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 break
 
     finally:
+        # Apagar transmisión y cerrar ventana
         tello.streamoff()
         cv2.destroyAllWindows()
+
 
 
         
